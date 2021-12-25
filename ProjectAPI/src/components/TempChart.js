@@ -12,9 +12,11 @@ import {LineChart} from 'react-native-charts-wrapper';
 export default class TempChart extends React.Component {
    constructor() {
       super();
+      this.chart = React.createRef();
       this.state = {
          time: new Date(2021, 27, 6, 18, 9, 0, 0).getTime(),
-         data: {},
+         dataCenter: [],
+         data:{},
          marker: {
             enabled: true,
             digits: 2,
@@ -23,89 +25,55 @@ export default class TempChart extends React.Component {
             textColor: processColor('black'),
             },
          xAxis: {
-            valueFormatter: 'date',
-            valueFormatterPattern: "dd/MM/YYYY, HH:mm:ss",
+            granularityEnabled: true,
+            granularity: 1,
+            valueFormatter: ['Jan', 'Feb', 'Mar'],
             labelRotationAngle: -80,
             position: 'BOTTOM',
-            timeUnit: 'SECONDS',
-            since: 0,
-            granularityEnabled: true,
-            granularity: 1,
             },
-         /*xAxis: {
-            granularityEnabled: true,
-            granularity: 1,
-            },*/
          };
+      this.uploadData=this.uploadData.bind(this);
    }
+   
    componentDidMount() { 
       this.setState(
       update(this.state, {
          data: {
-            $set: {
-            dataSets: [{
-               values: [
-                  {x: 1, y: 1}, {x: 2, y: 105}, {x: 3, y: 50}, {x: 4, y: 7}
-               ], 
-               label: 'Temperature',
-               config: {
-                lineWidth: 1.5,
-                drawValues: false,
-                drawCircles: true,
-                circleColor: processColor('red'),
-                drawFilled: true,
-                fillColor: processColor('blue'),
-                drawCubicIntensity: 0.3,
-                drawCubic: true,
-                drawHighlightIndicators: false,
-                color: processColor('red'),
-                drawFilled: false,
-               }
-            }],
+          $set: {
+            dataSets: [],
           }
         }
       })
     );
   }
 
-  onPressLearnMore() {
-     this.setState({...this.state, selectedEntry: 'toan dep trai'})
-     this.refs.chart.setDataAndLockIndex({
+  uploadData(data_input,tag) {
+     
+     this.setState({
+         dataCenter: data_input.map((item,id) => ({y:item.temp})),
+         xAxis:{
+            granularityEnabled: true,
+            granularity: 1,
+            valueFormatter: data_input.map((item) => (item.time)),
+            labelRotationAngle: -80,
+            position: 'BOTTOM',
+         }
+      });
+     this.chart.current.setDataAndLockIndex({
       dataSets: [{
-        values: [
-          {x: 1, y: 110},
-          {x: 2, y: 105},
-          {x: 3, y: 115},
-          {x: 4, y: 110},
-          {x: 5, y: 110},
-          {x: 6, y: 105},
-          {x: 7, y: 115},
-          {x: 8, y: 110},
-        ],
-        label: 'A',
-      }, {
-        values: [
-          {x: 1, y: 90},
-          {x: 2, y: 130},
-          {x: 3, y: 100},
-          {x: 4, y: 105},
-          {x: 5, y: 90},
-          {x: 6, y: 130},
-          {x: 7, y: 100},
-          {x: 8, y: 105}
-        ],
-        label: 'B',
-      }, {
-        values: [
-          {x: 1, y: 110},
-          {x: 2, y: 105},
-          {x: 3, y: 115},
-          {x: 4, y: 110},
-          {x: 5, y: 110},
-          {x: 6, y: 105},
-          {x: 7, y: 115},
-          {x: 8, y: 110}],
-        label: 'C',
+        values: this.state.dataCenter,
+        label: tag,
+        config: {
+                lineWidth: 1.5,
+                drawValues: false,
+                drawCircles: true,
+                circleColor: processColor('red'),
+                drawCubicIntensity: 0.3,
+                drawCubic: false,
+                drawHighlightIndicators: false,
+                color: processColor('red'),
+                drawFilled: false,
+               }
       }],
     })
   }
@@ -134,7 +102,7 @@ export default class TempChart extends React.Component {
             borderColor={processColor('teal')}
             borderWidth={1}
             drawBorders={false}
-            autoScaleMinMaxEnabled={false}
+            autoScaleMinMaxEnabled={true}
             touchEnabled={true}
             dragEnabled={true}
             scaleEnabled={true}
@@ -144,10 +112,10 @@ export default class TempChart extends React.Component {
             doubleTapToZoomEnabled={true}
             highlightPerTapEnabled={true}
             highlightPerDragEnabled={false}
-            // visibleRange={this.state.visibleRange}
+            visibleRange={this.state.visibleRange}
             dragDecelerationEnabled={true}
             dragDecelerationFrictionCoef={0.99}
-            ref="chart"
+            ref={this.chart}
             keepPositionOnRotation={false}
             onSelect={this.handleSelect.bind(this)}
             onChange={(event) => console.log(event.nativeEvent)}

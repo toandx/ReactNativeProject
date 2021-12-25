@@ -9,12 +9,14 @@ import {
 import update from 'immutability-helper';
 import {LineChart} from 'react-native-charts-wrapper';
 
-export default class DemoChart extends React.Component {
+export default class TempChart extends React.Component {
    constructor() {
       super();
+      this.chart = React.createRef();
       this.state = {
          time: new Date(2021, 27, 6, 18, 9, 0, 0).getTime(),
-         data: {},
+         dataCenter: [],
+         data:{},
          marker: {
             enabled: true,
             digits: 2,
@@ -23,83 +25,55 @@ export default class DemoChart extends React.Component {
             textColor: processColor('black'),
             },
          xAxis: {
-            valueFormatter: 'date',
-            valueFormatterPattern: "dd/MM/YYYY, HH:mm:ss",
-            labelRotationAngle: 90,
-            position: 'BOTTOM',
-            timeUnit: 'SECONDS',
-            since: 0,
             granularityEnabled: true,
             granularity: 1,
+            valueFormatter: ['Jan', 'Feb', 'Mar'],
+            labelRotationAngle: -80,
+            position: 'BOTTOM',
             },
          };
+      this.uploadData=this.uploadData.bind(this);
    }
+   
    componentDidMount() { 
       this.setState(
       update(this.state, {
          data: {
-            $set: {
-            dataSets: [{
-               values: [
-                  {x: this.state.time, y: 135}, 
-                  {x: this.state.time+10000000, y: 104}
-               ], 
-               label: 'Temperature',
-               config: {
-                lineWidth: 1.5,
-                drawCircles: true,
-                circleColor: processColor('red'),
-                drawCubicIntensity: 0.3,
-                drawCubic: true,
-                drawHighlightIndicators: false,
-                color: processColor('red'),
-                drawFilled: false,
-               }
-            }],
+          $set: {
+            dataSets: [],
           }
         }
       })
     );
   }
 
-  onPressLearnMore() {
-     this.setState({...this.state, selectedEntry: 'toan dep trai'})
-     this.refs.chart.setDataAndLockIndex({
+  uploadData(data_input,tag) {
+     
+     this.setState({
+         dataCenter: data_input.map((item,id) => ({y:item.temp})),
+         xAxis:{
+            granularityEnabled: true,
+            granularity: 1,
+            valueFormatter: data_input.map((item) => (item.time)),
+            labelRotationAngle: -80,
+            position: 'BOTTOM',
+         }
+      });
+     this.chart.current.setDataAndLockIndex({
       dataSets: [{
-        values: [
-          {x: 1, y: 0.88},
-          {x: 2, y: 0.77},
-          {x: 3, y: 105},
-          {x: 4, y: 150},
-          {x: 5, y: 0.88},
-          {x: 6, y: 0.77},
-          {x: 7, y: 105},
-          {x: 8, y: 135}
-        ],
-        label: 'A',
-      }, {
-        values: [
-          {x: 1, y: 90},
-          {x: 2, y: 130},
-          {x: 3, y: 100},
-          {x: 4, y: 105},
-          {x: 5, y: 90},
-          {x: 6, y: 130},
-          {x: 7, y: 100},
-          {x: 8, y: 105}
-        ],
-        label: 'B',
-      }, {
-        values: [
-          {x: 1, y: 110},
-          {x: 2, y: 105},
-          {x: 3, y: 115},
-          {x: 4, y: 110},
-          {x: 5, y: 110},
-          {x: 6, y: 105},
-          {x: 7, y: 115},
-          {x: 8, y: 110}],
-        label: 'C',
+        values: this.state.dataCenter,
+        label: tag,
+        config: {
+                lineWidth: 1.5,
+                drawValues: false,
+                drawCircles: true,
+                circleColor: processColor('red'),
+                drawCubicIntensity: 0.3,
+                drawCubic: false,
+                drawHighlightIndicators: false,
+                color: processColor('red'),
+                drawFilled: false,
+               }
       }],
     })
   }
@@ -128,7 +102,7 @@ export default class DemoChart extends React.Component {
             borderColor={processColor('teal')}
             borderWidth={1}
             drawBorders={false}
-            autoScaleMinMaxEnabled={false}
+            autoScaleMinMaxEnabled={true}
             touchEnabled={true}
             dragEnabled={true}
             scaleEnabled={true}
@@ -138,10 +112,10 @@ export default class DemoChart extends React.Component {
             doubleTapToZoomEnabled={true}
             highlightPerTapEnabled={true}
             highlightPerDragEnabled={false}
-            // visibleRange={this.state.visibleRange}
+            visibleRange={this.state.visibleRange}
             dragDecelerationEnabled={true}
             dragDecelerationFrictionCoef={0.99}
-            ref="chart"
+            ref={this.chart}
             keepPositionOnRotation={false}
             onSelect={this.handleSelect.bind(this)}
             onChange={(event) => console.log(event.nativeEvent)}
@@ -152,7 +126,9 @@ export default class DemoChart extends React.Component {
 
 const styles = StyleSheet.create({
   chart: {
-    width:500,
+    width: '100%',
+    flex: 1,
+    flex: 1,
     backgroundColor: 'white',
     flexWrap: 'wrap'
   }
